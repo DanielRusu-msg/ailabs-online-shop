@@ -6,7 +6,11 @@ import { signal } from '@angular/core';
 import { ProductUpdatePageComponent } from './product-update-page.component';
 import { ProductService } from '../../../services/product.service';
 import { NotificationsService } from '../../../../../core/services/notifications.service';
-import { MOCK_CATEGORIES, MOCK_PRODUCTS } from '../../../../../core/mocks/data/products.mock';
+import {
+    MOCK_CATEGORIES,
+    MOCK_PRODUCTS,
+    MOCK_SUPPLIERS
+} from '../../../../../core/mocks/data/products.mock';
 import { AppNavRoutes } from '../../../../../core/config/constants/navigation.constants';
 import { ValidationMessages } from '../../../../../core/types/providers/validation-messages';
 import { DefaultValidationMessages } from '../../../../../core/config/constants/validation.constants';
@@ -17,10 +21,12 @@ describe('ProductUpdatePageComponent', () => {
     let productServiceMock: {
         selectedProduct: ReturnType<typeof signal>;
         categories: ReturnType<typeof signal>;
+        suppliers: ReturnType<typeof signal>;
         loading: ReturnType<typeof signal>;
         error: ReturnType<typeof signal>;
         loadById: ReturnType<typeof vi.fn>;
         loadCategories: ReturnType<typeof vi.fn>;
+        loadSuppliers: ReturnType<typeof vi.fn>;
         update: ReturnType<typeof vi.fn>;
     };
     let routerMock: {
@@ -43,10 +49,12 @@ describe('ProductUpdatePageComponent', () => {
         productServiceMock = {
             selectedProduct: signal(MOCK_PRODUCTS[0]),
             categories: signal([...MOCK_CATEGORIES]),
+            suppliers: signal([...MOCK_SUPPLIERS]),
             loading: signal(false),
             error: signal(null),
             loadById: vi.fn().mockReturnValue(of(MOCK_PRODUCTS[0])),
             loadCategories: vi.fn().mockReturnValue(of(MOCK_CATEGORIES)),
+            loadSuppliers: vi.fn().mockReturnValue(of(MOCK_SUPPLIERS)),
             update: vi.fn().mockReturnValue(of(MOCK_PRODUCTS[0]))
         };
 
@@ -96,7 +104,7 @@ describe('ProductUpdatePageComponent', () => {
             expect(component).toBeTruthy();
         });
 
-        it('should load product and categories on init', () => {
+        it('should load product, categories and suppliers on init', () => {
             // Prepare
             // (component created in beforeEach)
 
@@ -106,6 +114,7 @@ describe('ProductUpdatePageComponent', () => {
             // Verify
             expect(productServiceMock.loadById).toHaveBeenCalledWith('prod-1');
             expect(productServiceMock.loadCategories).toHaveBeenCalled();
+            expect(productServiceMock.loadSuppliers).toHaveBeenCalled();
         });
 
         it('should navigate to products overview when no id provided', () => {
@@ -135,7 +144,8 @@ describe('ProductUpdatePageComponent', () => {
                 price: MOCK_PRODUCTS[0].price,
                 weight: MOCK_PRODUCTS[0].weight,
                 imageUrl: MOCK_PRODUCTS[0].imageUrl,
-                categoryId: MOCK_PRODUCTS[0].category.id
+                categoryId: MOCK_PRODUCTS[0].category.id,
+                supplierId: MOCK_PRODUCTS[0].supplier.id
             });
         });
     });
@@ -175,7 +185,8 @@ describe('ProductUpdatePageComponent', () => {
                 price: 199.99,
                 weight: MOCK_PRODUCTS[0].weight,
                 imageUrl: MOCK_PRODUCTS[0].imageUrl,
-                categoryId: MOCK_PRODUCTS[0].category.id
+                categoryId: MOCK_PRODUCTS[0].category.id,
+                supplierId: MOCK_PRODUCTS[0].supplier.id
             });
             expect(notificationsServiceMock.notifySuccess).toHaveBeenCalledWith({
                 title: 'Product updated',
@@ -246,11 +257,12 @@ describe('ProductUpdatePageComponent', () => {
     });
 
     describe('retry()', () => {
-        it('should reload product and categories', () => {
+        it('should reload product, categories and suppliers', () => {
             // Prepare
             component.ngOnInit();
             productServiceMock.loadById.mockClear();
             productServiceMock.loadCategories.mockClear();
+            productServiceMock.loadSuppliers.mockClear();
 
             // Action
             component.retry();
@@ -258,6 +270,7 @@ describe('ProductUpdatePageComponent', () => {
             // Verify
             expect(productServiceMock.loadById).toHaveBeenCalledWith('prod-1');
             expect(productServiceMock.loadCategories).toHaveBeenCalled();
+            expect(productServiceMock.loadSuppliers).toHaveBeenCalled();
         });
 
         it('should not reload when no product id', () => {
@@ -266,6 +279,7 @@ describe('ProductUpdatePageComponent', () => {
             component.ngOnInit();
             productServiceMock.loadById.mockClear();
             productServiceMock.loadCategories.mockClear();
+            productServiceMock.loadSuppliers.mockClear();
 
             // Action
             component.retry();
@@ -273,6 +287,7 @@ describe('ProductUpdatePageComponent', () => {
             // Verify
             expect(productServiceMock.loadById).not.toHaveBeenCalled();
             expect(productServiceMock.loadCategories).not.toHaveBeenCalled();
+            expect(productServiceMock.loadSuppliers).not.toHaveBeenCalled();
         });
     });
 });

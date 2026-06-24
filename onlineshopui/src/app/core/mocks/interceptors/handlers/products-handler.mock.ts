@@ -1,5 +1,5 @@
 import { HttpResponse } from '@angular/common/http';
-import { MOCK_CATEGORIES, MOCK_PRODUCTS } from '../../data/products.mock';
+import { MOCK_CATEGORIES, MOCK_PRODUCTS, MOCK_SUPPLIERS } from '../../data/products.mock';
 import {
     CreateProductRequest,
     ProductDto,
@@ -22,6 +22,15 @@ export function handleProductsFeature(
 
     if (method === 'GET' && path === '/products/categories') {
         return handleGetCategories();
+    }
+
+    if (method === 'GET' && path.match(/^\/suppliers\/[\w-]+$/)) {
+        const id = path.split('/').pop()!;
+        return handleGetSupplierById(id);
+    }
+
+    if (method === 'GET' && path === '/suppliers') {
+        return handleGetSuppliers();
     }
 
     if (method === 'GET' && path.match(/^\/products\/[\w-]+$/)) {
@@ -54,6 +63,30 @@ function handleGetCategories(): HttpResponse<unknown> {
     return new HttpResponse({
         status: 200,
         body: MOCK_CATEGORIES
+    });
+}
+
+function handleGetSuppliers(): HttpResponse<unknown> {
+    return new HttpResponse({
+        status: 200,
+        body: MOCK_SUPPLIERS
+    });
+}
+
+function handleGetSupplierById(id: string): HttpResponse<unknown> {
+    const supplier = MOCK_SUPPLIERS.find(s => s.id === id);
+
+    if (!supplier) {
+        return new HttpResponse({
+            status: 404,
+            statusText: 'Not Found',
+            body: { message: 'Supplier not found' }
+        });
+    }
+
+    return new HttpResponse({
+        status: 200,
+        body: supplier
     });
 }
 
@@ -92,6 +125,16 @@ function handleCreateProduct(body: CreateProductRequest): HttpResponse<unknown> 
         });
     }
 
+    const supplier = MOCK_SUPPLIERS.find(s => s.id === body.supplierId);
+
+    if (!supplier) {
+        return new HttpResponse({
+            status: 400,
+            statusText: 'Bad Request',
+            body: { message: 'Invalid supplier' }
+        });
+    }
+
     const newProduct: ProductDto = {
         id: `prod-${mockProductIdCounter++}`,
         name: body.name,
@@ -99,7 +142,8 @@ function handleCreateProduct(body: CreateProductRequest): HttpResponse<unknown> 
         price: body.price,
         weight: body.weight,
         imageUrl: body.imageUrl,
-        category
+        category,
+        supplier
     };
 
     mockProducts.push(newProduct);
@@ -131,6 +175,15 @@ function handleUpdateProduct(id: string, body: UpdateProductRequest): HttpRespon
         }
     }
 
+    let supplier = existingProduct.supplier;
+
+    if (body.supplierId) {
+        const foundSupplier = MOCK_SUPPLIERS.find(s => s.id === body.supplierId);
+        if (foundSupplier) {
+            supplier = foundSupplier;
+        }
+    }
+
     const updatedProduct: ProductDto = {
         ...existingProduct,
         name: body.name ?? existingProduct.name,
@@ -138,7 +191,8 @@ function handleUpdateProduct(id: string, body: UpdateProductRequest): HttpRespon
         price: body.price ?? existingProduct.price,
         weight: body.weight ?? existingProduct.weight,
         imageUrl: body.imageUrl ?? existingProduct.imageUrl,
-        category
+        category,
+        supplier
     };
 
     mockProducts[index] = updatedProduct;

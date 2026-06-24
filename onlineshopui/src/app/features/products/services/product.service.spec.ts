@@ -4,7 +4,7 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { take } from 'rxjs';
 import { ProductService } from './product.service';
 import { EnvironmentConfig } from '../../../core/types/providers/environment-config';
-import { MOCK_PRODUCTS, MOCK_CATEGORIES } from '../../../core/mocks/data/products.mock';
+import { MOCK_PRODUCTS, MOCK_CATEGORIES, MOCK_SUPPLIERS } from '../../../core/mocks/data/products.mock';
 import { MOCK_ENVIRONMENT_CONFIG } from '../../../core/mocks/data/environment.mock';
 import { ProductDto } from '../../../core/types/dtos/product.dto';
 
@@ -56,6 +56,7 @@ describe('ProductService', () => {
             expect(service.products()).toEqual([]);
             expect(service.selectedProduct()).toBeNull();
             expect(service.categories()).toEqual([]);
+            expect(service.suppliers()).toEqual([]);
             expect(service.loading()).toBe(false);
             expect(service.error()).toBeNull();
         });
@@ -286,6 +287,57 @@ describe('ProductService', () => {
         });
     });
 
+    describe('loadSuppliers()', () => {
+        it('should load suppliers successfully', () => {
+            // Prepare
+            // (service created in beforeEach)
+
+            // Action
+            service.loadSuppliers().pipe(take(1)).subscribe();
+
+            const req = httpMock.expectOne(`${MOCK_ENVIRONMENT_CONFIG.apiUrl}/suppliers`);
+            expect(req.request.method).toBe('GET');
+            req.flush(MOCK_SUPPLIERS);
+
+            // Verify
+            expect(service.suppliers()).toEqual(MOCK_SUPPLIERS);
+            expect(service.loading()).toBe(false);
+            expect(service.error()).toBeNull();
+        });
+
+        it('should set loading state correctly', () => {
+            // Prepare
+            // (service created in beforeEach)
+
+            // Action
+            service.loadSuppliers().subscribe();
+
+            // Verify
+            expect(service.loading()).toBe(true);
+
+            const req = httpMock.expectOne(`${MOCK_ENVIRONMENT_CONFIG.apiUrl}/suppliers`);
+            req.flush(MOCK_SUPPLIERS);
+
+            expect(service.loading()).toBe(false);
+        });
+
+        it('should handle error when loading suppliers fails', () => {
+            // Prepare
+            // (service created in beforeEach)
+
+            // Action
+            service.loadSuppliers().pipe(take(1)).subscribe();
+
+            const req = httpMock.expectOne(`${MOCK_ENVIRONMENT_CONFIG.apiUrl}/suppliers`);
+            req.flush('Error', { status: 500, statusText: 'Server Error' });
+
+            // Verify
+            expect(service.suppliers()).toEqual([]);
+            expect(service.error()).toBe('Failed to load suppliers');
+            expect(service.loading()).toBe(false);
+        });
+    });
+
     describe('create()', () => {
         it('should create a new product and add to products signal', () => {
             // Prepare
@@ -295,7 +347,8 @@ describe('ProductService', () => {
                 price: 99.99,
                 weight: 1.5,
                 imageUrl: 'http://test.com/image.jpg',
-                categoryId: 'cat-1'
+                categoryId: 'cat-1',
+                supplierId: 'sup-1'
             };
 
             const createdProduct: ProductDto = {
@@ -305,7 +358,8 @@ describe('ProductService', () => {
                 price: newProductData.price,
                 weight: newProductData.weight,
                 imageUrl: newProductData.imageUrl,
-                category: MOCK_CATEGORIES[0]
+                category: MOCK_CATEGORIES[0],
+                supplier: MOCK_SUPPLIERS[0]
             };
 
             // Pre-populate with existing products
@@ -338,7 +392,8 @@ describe('ProductService', () => {
                 price: 50.0,
                 weight: 0.5,
                 imageUrl: 'http://example.com/image.jpg',
-                categoryId: 'cat-2'
+                categoryId: 'cat-2',
+                supplierId: 'sup-2'
             };
 
             // Action
@@ -351,7 +406,8 @@ describe('ProductService', () => {
             req.flush({
                 id: 'prod-test',
                 ...newProductData,
-                category: MOCK_CATEGORIES[1]
+                category: MOCK_CATEGORIES[1],
+                supplier: MOCK_SUPPLIERS[1]
             });
         });
 
@@ -363,7 +419,8 @@ describe('ProductService', () => {
                 price: 99.99,
                 weight: 1.5,
                 imageUrl: 'http://test.com/image.jpg',
-                categoryId: 'cat-1'
+                categoryId: 'cat-1',
+                supplierId: 'sup-1'
             };
 
             // Action
