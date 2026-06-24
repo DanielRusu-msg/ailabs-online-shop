@@ -10,6 +10,8 @@ import { NotificationsService } from '../../../../../core/services/notifications
 import { MOCK_CART_ITEMS } from '../../../../../core/mocks/data/cart.mock';
 import { MOCK_PRODUCTS } from '../../../../../core/mocks/data/products.mock';
 import { MOCK_ORDERS } from '../../../../../core/mocks/data/orders.mock';
+import { ValidationMessages } from '../../../../../core/types/providers/validation-messages';
+import { DefaultValidationMessages } from '../../../../../core/config/constants/validation.constants';
 import { signal } from '@angular/core';
 
 describe('CartOverviewPageComponent', () => {
@@ -78,7 +80,8 @@ describe('CartOverviewPageComponent', () => {
                 { provide: ProductService, useValue: productServiceMock },
                 { provide: OrdersService, useValue: ordersServiceMock },
                 { provide: Router, useValue: routerMock },
-                { provide: NotificationsService, useValue: notificationsServiceMock }
+                { provide: NotificationsService, useValue: notificationsServiceMock },
+                { provide: ValidationMessages, useValue: DefaultValidationMessages }
             ]
         });
 
@@ -177,9 +180,28 @@ describe('CartOverviewPageComponent', () => {
             expect(ordersServiceMock.create).not.toHaveBeenCalled();
         });
 
+        it('should not proceed when address form is invalid', () => {
+            // Prepare
+            fixture.detectChanges();
+            // (address form left empty, hence invalid)
+
+            // Action
+            component.onCheckout();
+
+            // Verify
+            expect(component.addressForm.invalid).toBe(true);
+            expect(ordersServiceMock.create).not.toHaveBeenCalled();
+        });
+
         it('should create order and navigate to orders on success', () => {
             // Prepare
             fixture.detectChanges();
+            component.addressForm.setValue({
+                country: 'Romania',
+                county: 'Cluj',
+                city: 'Cluj-Napoca',
+                streetAddress: 'Strada Mihai Eminescu 5'
+            });
 
             // Action
             component.onCheckout();
@@ -194,10 +216,36 @@ describe('CartOverviewPageComponent', () => {
             expect(routerMock.navigate).toHaveBeenCalled();
         });
 
+        it('should send the entered address in the order payload', () => {
+            // Prepare
+            fixture.detectChanges();
+            const address = {
+                country: 'Romania',
+                county: 'Cluj',
+                city: 'Cluj-Napoca',
+                streetAddress: 'Strada Mihai Eminescu 5'
+            };
+            component.addressForm.setValue(address);
+
+            // Action
+            component.onCheckout();
+
+            // Verify
+            expect(ordersServiceMock.create).toHaveBeenCalledWith(
+                expect.objectContaining({ address })
+            );
+        });
+
         it('should handle checkout failure', () => {
             // Prepare
             ordersServiceMock.create.mockReturnValue(throwError(() => new Error('Failed')));
             fixture.detectChanges();
+            component.addressForm.setValue({
+                country: 'Romania',
+                county: 'Cluj',
+                city: 'Cluj-Napoca',
+                streetAddress: 'Strada Mihai Eminescu 5'
+            });
 
             // Action
             component.onCheckout();

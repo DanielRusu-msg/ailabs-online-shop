@@ -232,7 +232,13 @@ describe('OrdersService', () => {
                         productId: 'prod-3',
                         quantity: 1
                     }
-                ]
+                ],
+                address: {
+                    country: 'Romania',
+                    city: 'Cluj-Napoca',
+                    county: 'Cluj',
+                    streetAddress: 'Strada Mihai Eminescu 5'
+                }
             };
 
             const createdOrder: OrderDto = {
@@ -277,7 +283,13 @@ describe('OrdersService', () => {
                         productId: 'prod-2',
                         quantity: 1
                     }
-                ]
+                ],
+                address: {
+                    country: 'Romania',
+                    city: 'Cluj-Napoca',
+                    county: 'Cluj',
+                    streetAddress: 'Strada Mihai Eminescu 5'
+                }
             };
 
             // Action
@@ -298,7 +310,13 @@ describe('OrdersService', () => {
                         productId: 'prod-1',
                         quantity: 1
                     }
-                ]
+                ],
+                address: {
+                    country: 'Romania',
+                    city: 'Cluj-Napoca',
+                    county: 'Cluj',
+                    streetAddress: 'Strada Mihai Eminescu 5'
+                }
             };
 
             // Action

@@ -2,6 +2,7 @@ package msg.onlineshopapi.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import msg.onlineshopapi.config.TestSecurityConfig;
+import msg.onlineshopapi.dto.AddressDto;
 import msg.onlineshopapi.dto.OrderItemRequestDto;
 import msg.onlineshopapi.dto.OrderRequestDto;
 import msg.onlineshopapi.dto.OrderResponseDto;
@@ -58,6 +59,15 @@ class OrderControllerTest {
     private final UUID userId = UUID.randomUUID();
     private final UUID productId = UUID.randomUUID();
 
+    private AddressDto address() {
+        return AddressDto.builder()
+                .country("Romania")
+                .city("Cluj-Napoca")
+                .county("Cluj")
+                .streetAddress("Strada Mihai Eminescu 5")
+                .build();
+    }
+
     @Test
     @WithMockUser(roles = "CUSTOMER")
     void getAll_returnsOrders() throws Exception {
@@ -101,6 +111,7 @@ class OrderControllerTest {
         OrderRequestDto request = OrderRequestDto.builder()
                 .items(List.of(OrderItemRequestDto.builder()
                         .productId(productId).quantity(2).build()))
+                .address(address())
                 .build();
         Order entity = Order.builder().build();
         Order saved = Order.builder().id(orderId).build();
@@ -124,6 +135,7 @@ class OrderControllerTest {
         OrderRequestDto request = OrderRequestDto.builder()
                 .items(List.of(OrderItemRequestDto.builder()
                         .productId(productId).quantity(999).build()))
+                .address(address())
                 .build();
         Order entity = Order.builder().build();
 
@@ -137,6 +149,21 @@ class OrderControllerTest {
                         .principal(() -> "customer@test.com"))
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.error").value("Insufficient stock"));
+    }
+
+    @Test
+    @WithMockUser(username = "customer@test.com", roles = "CUSTOMER")
+    void create_returns400_whenAddressMissing() throws Exception {
+        OrderRequestDto request = OrderRequestDto.builder()
+                .items(List.of(OrderItemRequestDto.builder()
+                        .productId(productId).quantity(2).build()))
+                .build();
+
+        mockMvc.perform(post("/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .principal(() -> "customer@test.com"))
+                .andExpect(status().isBadRequest());
     }
 
     private OrderResponseDto orderResponse(UUID id) {

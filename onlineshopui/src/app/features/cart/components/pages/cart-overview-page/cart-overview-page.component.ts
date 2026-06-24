@@ -7,15 +7,20 @@ import {
     signal
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { ReactiveFormsModule } from '@angular/forms';
 import { take } from 'rxjs';
 import { CartService } from '../../../services/cart.service';
 import { ProductService } from '../../../../products/services/product.service';
 import { OrdersService } from '../../../../orders/services/orders.service';
 import { SpinnerComponent } from '../../../../../clib/components/spinner/spinner.component';
+import { CardComponent } from '../../../../../clib/components/card/card.component';
+import { ErrorMessageComponent } from '../../../../../clib/components/error-message/error-message.component';
 import { CartItemRowComponent } from '../../views/cart-item-row/cart-item-row.component';
 import { CartSummaryComponent } from '../../views/cart-summary/cart-summary.component';
 import { AppNavRoutes } from '../../../../../core/config/constants/navigation.constants';
 import { NotificationsService } from '../../../../../core/services/notifications.service';
+import { AddressDto } from '../../../../../core/types/dtos/location.dto';
+import { createAddressForm } from '../../../utils/address-form.utils';
 import {
     buildProductsById,
     calculateCartSubtotal,
@@ -24,7 +29,15 @@ import {
 
 @Component({
     selector: 'app-cart-overview-page',
-    imports: [SpinnerComponent, CartItemRowComponent, CartSummaryComponent, RouterLink],
+    imports: [
+        SpinnerComponent,
+        CardComponent,
+        ErrorMessageComponent,
+        CartItemRowComponent,
+        CartSummaryComponent,
+        ReactiveFormsModule,
+        RouterLink
+    ],
     templateUrl: './cart-overview-page.component.html',
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -40,6 +53,7 @@ export class CartOverviewPageComponent implements OnInit {
     readonly loading = this.productService.loading;
     readonly error = this.productService.error;
     readonly isSubmitting = signal(false);
+    readonly addressForm = createAddressForm();
     readonly productsLink = [
         '/',
         AppNavRoutes.Products.root,
@@ -73,7 +87,13 @@ export class CartOverviewPageComponent implements OnInit {
     onCheckout(): void {
         if (this.cartItems().length === 0) return;
 
-        const payload = toCreateOrderDto(this.cartItems());
+        if (this.addressForm.invalid) {
+            this.addressForm.markAllAsTouched();
+            return;
+        }
+
+        const address = this.addressForm.getRawValue() as AddressDto;
+        const payload = toCreateOrderDto(this.cartItems(), address);
         if (!payload) return;
 
         this.isSubmitting.set(true);
