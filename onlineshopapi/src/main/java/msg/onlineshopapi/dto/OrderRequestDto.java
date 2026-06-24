@@ -1,5 +1,8 @@
 package msg.onlineshopapi.dto;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.util.List;
@@ -11,5 +14,10 @@ import java.util.List;
 @Builder
 public class OrderRequestDto {
 
+    @NotEmpty
     private List<OrderItemRequestDto> items;
+
+    @NotNull
+    @Valid
+    private AddressDto address;
 }

@@ -29,7 +29,7 @@ public class OrderMapper {
                 .id(order.getId())
                 .userId(order.getUser().getId())
                 .createdAt(order.getCreatedAt())
-                .address(order.getAddress() != null ? addressMapper.toDto(order.getAddress()) : null)
+                .address(addressMapper.toDto(order.getAddress()))
                 .details(details)
                 .build();
     }
@@ -44,6 +44,7 @@ public class OrderMapper {
 
         return Order.builder()
                 .orderDetails(details)
+                .address(addressMapper.toEntity(dto.getAddress()))
                 .build();
     }
 }

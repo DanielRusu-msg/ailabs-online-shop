@@ -34,6 +34,12 @@ public class Order {
     }
 
     @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "country", column = @Column(name = "country", nullable = false)),
+            @AttributeOverride(name = "city", column = @Column(name = "city", nullable = false)),
+            @AttributeOverride(name = "county", column = @Column(name = "county", nullable = false)),
+            @AttributeOverride(name = "streetAddress", column = @Column(name = "street_address", nullable = false))
+    })
     private Address address;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
