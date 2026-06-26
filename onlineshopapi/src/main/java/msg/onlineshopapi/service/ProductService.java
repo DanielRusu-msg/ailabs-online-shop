@@ -39,6 +39,7 @@ public class ProductService {
         existing.setPrice(product.getPrice());
         existing.setWeight(product.getWeight());
         existing.setCategory(product.getCategory());
+        existing.setSupplier(product.getSupplier());
         existing.setImageUrl(product.getImageUrl());
         return productRepository.save(existing);
     }
